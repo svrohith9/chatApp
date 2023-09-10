@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Chat</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<textarea id="chatWindow" rows="20" cols="50" readonly></textarea><br/>
+<input type="text" id="message" placeholder="Type your message...">
+<button onclick="sendMessage()">Send</button>
+
+<script th:inline="javascript">
+  let socket = new SockJS('/chat');
+  let stompClient = Stomp.over(socket);
+  stompClient.connect({}, function(frame) {
+    stompClient.subscribe('/topic/messages', function(messageOutput) {
+      let chatWindow = document.getElementById("chatWindow");
+      chatWindow.value += messageOutput.body + "\n";
+    });
+  });
+
+  function sendMessage() {
+    let messageInput = document.getElementById("message");
+    stompClient.send("/app/sendMessage", {}, messageInput.value);
+    messageInput.value = "";
+  }
+</script>
+</body>
+</html>
